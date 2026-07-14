@@ -1,0 +1,16 @@
+# Environment / secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Project-generated data
+downloads/
+uploads/
+vector_db/
+
+# OS/editor
+.vscode/
+.DS_Store

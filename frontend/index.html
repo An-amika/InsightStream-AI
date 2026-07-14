@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>VideoAgent — AI Meeting Assistant</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #14120F;
+    --surface: #1E1B17;
+    --surface-2: #262219;
+    --text: #F2EDE4;
+    --muted: #9A9186;
+    --amber: #C98B3B;
+    --teal: #4FA89B;
+    --border: #34302A;
+    --danger: #C9603B;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, .display {
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.01em;
+  }
+
+  .mono {
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  a { color: inherit; }
+
+  /* ---------- Layout ---------- */
+  .shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  header.top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 0 0;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .brand .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--amber);
+  }
+
+  /* ---------- Hero + waveform ---------- */
+  .hero {
+    padding: 72px 0 40px;
+    text-align: center;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    font-weight: 600;
+    margin: 0 0 14px;
+    line-height: 1.05;
+  }
+
+  .hero h1 span { color: var(--amber); }
+
+  .hero p {
+    color: var(--muted);
+    font-size: 1.05rem;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  .waveform {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 3px;
+    height: 60px;
+    margin: 36px 0 8px;
+  }
+
+  .waveform .bar {
+    width: 4px;
+    border-radius: 2px;
+    background: linear-gradient(to top, var(--amber), var(--teal));
+    animation: wave 1.4s ease-in-out infinite;
+    opacity: 0.85;
+  }
+
+  @keyframes wave {
+    0%, 100% { transform: scaleY(0.25); }
+    50% { transform: scaleY(1); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .waveform .bar { animation: none; transform: scaleY(0.6); }
+  }
+
+  /* ---------- Input card ---------- */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--surface-2);
+    padding: 4px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    width: fit-content;
+  }
+
+  .tab-btn {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    padding: 8px 16px;
+    border-radius: 7px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .tab-btn.active {
+    background: var(--amber);
+    color: #1a1712;
+  }
+
+  label.field-label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  input[type="text"], input[type="file"] {
+    width: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 14px;
+    border-radius: 9px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.9rem;
+  }
+
+  input[type="text"]:focus {
+    outline: 2px solid var(--amber);
+    outline-offset: 1px;
+  }
+
+  .lang-pills {
+    display: flex;
+    gap: 8px;
+    margin-top: 18px;
+  }
+
+  .pill {
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--muted);
+    padding: 9px 18px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .pill.active {
+    border-color: var(--amber);
+    color: var(--amber);
+    background: rgba(201, 139, 59, 0.1);
+  }
+
+  .submit-btn {
+    width: 100%;
+    margin-top: 22px;
+    background: var(--amber);
+    color: #1a1712;
+    border: none;
+    padding: 14px;
+    border-radius: 9px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+
+  .submit-btn:hover { opacity: 0.9; }
+  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .submit-btn:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+  /* ---------- Processing steps ---------- */
+  .steps {
+    margin-top: 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  .step.done { color: var(--text); }
+  .step.active { color: var(--amber); }
+
+  .step .marker {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+  }
+
+  .step.done .marker { border-color: var(--teal); background: var(--teal); color: #0e1614; }
+  .step.active .marker { border-color: var(--amber); }
+
+  .error-box {
+    margin-top: 18px;
+    padding: 14px 16px;
+    background: rgba(201, 96, 59, 0.12);
+    border: 1px solid var(--danger);
+    color: #F0B8A2;
+    border-radius: 9px;
+    font-size: 0.88rem;
+  }
+
+  /* ---------- Results ---------- */
+  .results {
+    margin-top: 40px;
+  }
+
+  .results h2.title {
+    font-size: 1.6rem;
+    margin-bottom: 22px;
+  }
+
+  .result-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--surface-2);
+    padding: 4px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+    overflow-x: auto;
+  }
+
+  .result-tabs button {
+    white-space: nowrap;
+  }
+
+  .result-body {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 26px;
+    min-height: 160px;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    white-space: pre-wrap;
+  }
+
+  .result-body.transcript {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    max-height: 420px;
+    overflow-y: auto;
+    color: var(--muted);
+  }
+
+  /* ---------- Chat ---------- */
+  .chat-panel {
+    margin-top: 26px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+  }
+
+  .chat-panel h3 {
+    font-size: 1rem;
+    margin: 0 0 14px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+  }
+
+  .chat-log {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-height: 340px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+    padding-right: 4px;
+  }
+
+  .msg {
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    max-width: 85%;
+  }
+
+  .msg.user {
+    background: var(--surface-2);
+    align-self: flex-end;
+    color: var(--text);
+  }
+
+  .msg.assistant {
+    background: rgba(79, 168, 155, 0.1);
+    border: 1px solid rgba(79, 168, 155, 0.25);
+    align-self: flex-start;
+  }
+
+  .msg .role {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .chat-input-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .chat-input-row input {
+    flex: 1;
+  }
+
+  .chat-input-row button {
+    background: var(--teal);
+    color: #0e1614;
+    border: none;
+    padding: 0 20px;
+    border-radius: 9px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .chat-input-row button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .empty-hint {
+    color: var(--muted);
+    font-size: 0.88rem;
+    text-align: center;
+    padding: 20px 0;
+  }
+
+  footer.foot {
+    text-align: center;
+    color: var(--border);
+    font-size: 0.78rem;
+    margin-top: 60px;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState, useRef, useEffect } = React;
+
+const API_BASE = "http://localhost:8000";
+
+const PIPELINE_STEPS = [
+  "Fetching audio",
+  "Transcribing speech",
+  "Summarizing meeting",
+  "Indexing for chat",
+];
+
+function Waveform() {
+  const bars = Array.from({ length: 28 });
+  return (
+    <div className="waveform" aria-hidden="true">
+      {bars.map((_, i) => (
+        <div
+          className="bar"
+          key={i}
+          style={{
+            height: `${18 + Math.sin(i * 0.7) * 14 + 20}px`,
+            animationDelay: `${i * 0.045}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function InputCard({ onSubmit, isProcessing }) {
+  const [mode, setMode] = useState("youtube");
+  const [url, setUrl] = useState("");
+  const [file, setFile] = useState(null);
+  const [language, setLanguage] = useState("english");
+
+  const canSubmit = mode === "youtube" ? url.trim().length > 0 : !!file;
+
+  const handleSubmit = () => {
+    if (!canSubmit || isProcessing) return;
+    onSubmit({ mode, url, file, language });
+  };
+
+  return (
+    <div className="card">
+      <div className="tabs" role="tablist" aria-label="Choose source">
+        <button
+          className={`tab-btn ${mode === "youtube" ? "active" : ""}`}
+          onClick={() => setMode("youtube")}
+          role="tab"
+          aria-selected={mode === "youtube"}
+        >
+          YouTube URL
+        </button>
+        <button
+          className={`tab-btn ${mode === "upload" ? "active" : ""}`}
+          onClick={() => setMode("upload")}
+          role="tab"
+          aria-selected={mode === "upload"}
+        >
+          Upload file
+        </button>
+      </div>
+
+      {mode === "youtube" ? (
+        <div>
+          <label className="field-label" htmlFor="yt-url">YouTube link</label>
+          <input
+            id="yt-url"
+            type="text"
+            placeholder="https://www.youtube.com/watch?v=..."
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+          />
+        </div>
+      ) : (
+        <div>
+          <label className="field-label" htmlFor="file-upload">Audio or video file</label>
+          <input
+            id="file-upload"
+            type="file"
+            accept="audio/*,video/*"
+            onChange={(e) => setFile(e.target.files[0])}
+          />
+        </div>
+      )}
+
+      <div className="lang-pills" role="radiogroup" aria-label="Spoken language">
+        <button
+          className={`pill ${language === "english" ? "active" : ""}`}
+          onClick={() => setLanguage("english")}
+          role="radio"
+          aria-checked={language === "english"}
+        >
+          English
+        </button>
+        <button
+          className={`pill ${language === "hinglish" ? "active" : ""}`}
+          onClick={() => setLanguage("hinglish")}
+          role="radio"
+          aria-checked={language === "hinglish"}
+        >
+          Hindi → English
+        </button>
+      </div>
+
+      <button className="submit-btn" onClick={handleSubmit} disabled={!canSubmit || isProcessing}>
+        {isProcessing ? "Processing…" : "Process meeting"}
+      </button>
+    </div>
+  );
+}
+
+function ProcessingSteps({ stepIndex }) {
+  return (
+    <div className="steps">
+      {PIPELINE_STEPS.map((label, i) => {
+        const state = i < stepIndex ? "done" : i === stepIndex ? "active" : "";
+        return (
+          <div className={`step ${state}`} key={label}>
+            <span className="marker">{state === "done" ? "✓" : ""}</span>
+            <span>{label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function Results({ result }) {
+  const [tab, setTab] = useState("summary");
+
+  const tabs = [
+    { key: "summary", label: "Summary" },
+    { key: "action_items", label: "Action Items" },
+    { key: "key_decisions", label: "Key Decisions" },
+    { key: "open_questions", label: "Open Questions" },
+    { key: "transcript", label: "Transcript" },
+  ];
+
+  return (
+    <div className="results">
+      <h2 className="title display">{result.title}</h2>
+
+      <div className="result-tabs" role="tablist">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            className={`tab-btn ${tab === t.key ? "active" : ""}`}
+            onClick={() => setTab(t.key)}
+            role="tab"
+            aria-selected={tab === t.key}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div className={`result-body ${tab === "transcript" ? "transcript" : ""}`}>
+        {result[tab]}
+      </div>
+    </div>
+  );
+}
+
+function ChatPanel({ sessionId }) {
+  const [messages, setMessages] = useState([]);
+  const [question, setQuestion] = useState("");
+  const [asking, setAsking] = useState(false);
+  const logRef = useRef(null);
+
+  useEffect(() => {
+    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
+  }, [messages]);
+
+  const send = async () => {
+    const q = question.trim();
+    if (!q || asking) return;
+
+    setMessages((m) => [...m, { role: "user", text: q }]);
+    setQuestion("");
+    setAsking(true);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId, question: q }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Something went wrong.");
+      setMessages((m) => [...m, { role: "assistant", text: data.answer }]);
+    } catch (err) {
+      setMessages((m) => [...m, { role: "assistant", text: `Couldn't get an answer: ${err.message}` }]);
+    } finally {
+      setAsking(false);
+    }
+  };
+
+  const handleKey = (e) => {
+    if (e.key === "Enter") send();
+  };
+
+  return (
+    <div className="chat-panel">
+      <h3>Chat with your meeting</h3>
+
+      <div className="chat-log" ref={logRef}>
+        {messages.length === 0 && (
+          <div className="empty-hint">Ask anything about what was discussed.</div>
+        )}
+        {messages.map((m, i) => (
+          <div className={`msg ${m.role}`} key={i}>
+            <span className="role">{m.role === "user" ? "You" : "Assistant"}</span>
+            {m.text}
+          </div>
+        ))}
+      </div>
+
+      <div className="chat-input-row">
+        <input
+          type="text"
+          placeholder="You can ask anything?"
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          onKeyDown={handleKey}
+        />
+        <button onClick={send} disabled={asking || !question.trim()}>
+          {asking ? "…" : "Ask"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [stepIndex, setStepIndex] = useState(0);
+  const [error, setError] = useState(null);
+  const [result, setResult] = useState(null);
+
+  const handleSubmit = async ({ mode, url, file, language }) => {
+    setIsProcessing(true);
+    setError(null);
+    setResult(null);
+    setStepIndex(0);
+
+    // Purely cosmetic step ticker -- the backend call itself is one request,
+    // this just gives visual feedback since the whole pipeline takes a while.
+    const ticker = setInterval(() => {
+      setStepIndex((i) => (i < PIPELINE_STEPS.length - 1 ? i + 1 : i));
+    }, 4000);
+
+    try {
+      const form = new FormData();
+      form.append("language", language);
+      if (mode === "youtube") {
+        form.append("youtube_url", url);
+      } else {
+        form.append("file", file);
+      }
+
+      const res = await fetch(`${API_BASE}/api/process`, {
+        method: "POST",
+        body: form,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Processing failed.");
+
+      setResult(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      clearInterval(ticker);
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <div className="shell">
+      <header className="top">
+        <div className="brand"><span className="dot"></span>VideoAgent</div>
+      </header>
+
+      <div className="hero">
+        <Waveform />
+        <h1>Turn any meeting into <span>answers</span>.</h1>
+        <p>Paste a YouTube link or upload a recording. Get a transcript, summary, action items, and a chat interface — in English or translated from Hindi.</p>
+      </div>
+
+      <InputCard onSubmit={handleSubmit} isProcessing={isProcessing} />
+
+      {isProcessing && <ProcessingSteps stepIndex={stepIndex} />}
+      {error && <div className="error-box">{error}</div>}
+
+      {result && (
+        <>
+          <Results result={result} />
+          <ChatPanel sessionId={result.session_id} />
+        </>
+      )}
+
+      <footer className="foot">Local Whisper · Sarvam AI · Mistral · ChromaDB</footer>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

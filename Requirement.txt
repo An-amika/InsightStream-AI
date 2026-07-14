@@ -1,0 +1,44 @@
+# --- Core UI ---
+streamlit==1.38.0
+
+# --- YouTube & Audio Handling ---
+yt-dlp==2024.8.6
+pydub==0.25.1
+ffmpeg-python==0.2.0
+
+# --- Transcription (Local Whisper) ---
+openai-whisper==20231117
+torch==2.3.1
+torchaudio==2.3.1
+
+# --- Translation (Hindi -> English, if not using Whisper's built-in translate task) ---
+# Optional: only needed if you use a dedicated translation model instead of Whisper's translate mode
+# transformers==4.44.2
+# sentencepiece==0.2.0
+
+# --- LangChain + LCEL + Mistral API ---
+langchain==0.2.16
+langchain-core==0.2.43
+langchain-community==0.2.17
+langchain-mistralai==0.1.13
+
+# --- RAG: Vector Store + Embeddings ---
+chromadb==0.5.5
+langchain-chroma==0.1.4
+langchain-huggingface==0.0.3
+sentence-transformers==3.0.1
+
+# --- PDF / TXT Export ---
+fpdf2==2.7.9
+reportlab==4.2.2
+
+# --- Utilities ---
+python-dotenv==1.0.1
+tiktoken==0.7.0
+numpy==1.26.4
+requests==2.32.3
+
+# --- Backend API (for React frontend) ---
+fastapi==0.115.0
+uvicorn==0.32.0
+python-multipart==0.0.12
